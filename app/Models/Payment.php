@@ -8,6 +8,6 @@ class Payment extends Model
 {
     protected $table = 'payments'; // Update with your actual table name
     protected $fillable = [
-        'payment_percent', 'payment_status', 'extra_charge', 'item_extra_charge'
+        'payment', 'payment_status', 'charges' ,'balance' , 'extra_charge', 'item_extra_charge'
     ];
 }

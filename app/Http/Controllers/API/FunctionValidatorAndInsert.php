@@ -40,14 +40,7 @@ class FunctionValidatorAndInsert
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required',
-            'gender' => 'required',
             'phone_number' => 'required',
-            'email' => 'required|email',
-            'country' => 'required',
-            'dob' => 'required|date',
-            'passport_number' => 'nullable',
-            'card_id' => 'nullable',
-            'other_information' => 'nullable',
         ]);
 
         return $validator;
@@ -56,20 +49,7 @@ class FunctionValidatorAndInsert
     public function bookingStayValidator($request)
     {
         $validator = Validator::make($request->all(), [
-            'room_id' => 'required',
-            'is_cancel' => 'nullable',
-            'cancel_date' => 'nullable|date',
-            'arrival_date' => 'nullable|date',
-            'departure_date' => 'nullable|date',
-            'checkin_date' => 'nullable|date',
-            'checkout_date' => 'nullable|date',
-            'adults' => 'nullable',
-            'child' => 'nullable',
-            'created_by' => 'nullable',
-            'note' => 'nullable',
-            'fan' => 'nullable',
-            'air_conditioner' => 'nullable',
-            
+            'room_type' => 'required',        
         ]);
 
         return $validator;
@@ -78,7 +58,7 @@ class FunctionValidatorAndInsert
     public function paymentValidator($request)
     {
         $validator = Validator::make($request->all(), [
-            'payment_percent' => 'nullable',
+            'payment' => 'nullable',
             'payment_status' => 'nullable',
             'extra_charge' => 'nullable',
             'item_extra_charge' => 'nullable',
@@ -132,7 +112,9 @@ class FunctionValidatorAndInsert
             $payment = new Payment();
         }
         
-        $payment->payment_percent = $request->input('payment_percent');
+        $payment->payment = $request->input('payment');
+        $payment->charges = $request->input('charges');
+        $payment->balance = $request->input('balance');
         $payment->payment_status = $request->input('payment_status');
         $payment->extra_charge = $request->input('extra_charge');
         $payment->item_extra_charge = $request->input('item_extra_charge');
@@ -161,6 +143,7 @@ class FunctionValidatorAndInsert
         $guest = $guestInsert;
         $payment = $paymentInsert;
         $booking->room_id = $request->input('room_id');
+        $booking->room_type = $request->input('room_type');
         $booking->is_cancel = $request->input('is_cancel') ?? false;
         $booking->cancel_date = $request->input('cancel_date');
         $booking->arrival_date = $request->input('arrival_date');

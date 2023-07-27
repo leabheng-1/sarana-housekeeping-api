@@ -18,6 +18,8 @@ use App\Http\Controllers\API\GuestsController;
 use App\Http\Controllers\API\BookingController; 
 use App\Http\Controllers\API\RoomsController; 
 use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\API\DashboardController;
+
  
 Route::post('/guests/insert', [GuestsController::class, 'insert']);
 Route::post('register', [RegisterController::class, 'register']);
@@ -43,7 +45,10 @@ Route::get('payment/select', [PaymentController::class, 'selectAllPayment']);
 Route::post('payment/insert', [PaymentController::class, 'insert']);
 Route::put('payment/update/{id}', [PaymentController::class, 'update']);
 Route::delete('payment/delete/{id}', [PaymentController::class, 'delete']);
-
+// 
+Route::get('dashboard/today_booking', [DashboardController::class, 'todayBooking']);
+Route::get('dashboard/todayStatus', [DashboardController::class, 'todayStatus']);
+Route::get('dashboard/guest_today', [DashboardController::class, 'bookingsCountByDayOfWeek']);
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
