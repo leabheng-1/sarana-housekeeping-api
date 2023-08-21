@@ -25,7 +25,7 @@ class GuestsController extends BaseController
          }
          $operation = 'insert';
          $guest = $guest_input->guestInsert($request, $operation);
-         return $this->sendResponse($guest, 'Guest inserted successfully');
+         return $this->sendResponse($guest, 'Guest s inserted successfully');
      }
     public function selectAllGuests()
     {
