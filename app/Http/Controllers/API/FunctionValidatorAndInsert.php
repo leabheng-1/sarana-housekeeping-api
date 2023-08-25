@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Rooms;
 use App\Models\Guest;
+use App\Models\Housekeeping;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -144,7 +145,7 @@ class FunctionValidatorAndInsert
         $payment = $paymentInsert;
         $booking->room_id = $request->input('room_id');
         $booking->room_type = $request->input('room_type');
-        $booking->is_cancel = $request->input('is_cancel') ?? false;
+        $booking->booking_status = $request->input('booking_status') ?? false;
         $booking->cancel_date = $request->input('cancel_date');
         $booking->arrival_date = $request->input('arrival_date');
         $booking->checkin_date = $request->input('checkin_date');
@@ -177,6 +178,37 @@ class FunctionValidatorAndInsert
         );
     
         $validator = Validator::make($request->all(), $rules);
+        return $validator;
+    }
+
+    // 
+    public function housekeepingInsert(Request $request, $operation)
+    {
+        if ($operation === 'update' && $request->has('id')) {
+            $housekeeping = Housekeeping::findOrFail($request->input('id'));
+        } else {
+            $housekeeping = new Housekeeping();
+        }
+
+        $housekeeping->room_id = $request->input('room_id');
+        $housekeeping->housekeeper = $request->input('housekeeper');
+        $housekeeping->housekeeping_status = $request->input('housekeeping_status');
+        $housekeeping->date = $request->input('date');
+        $housekeeping->save();
+
+        return $housekeeping;
+    }
+
+    // Housekeeping Validator
+    public function housekeepingValidator(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'room_id' => 'required|exists:rooms,id', // Assuming 'rooms' is the rooms table
+            'housekeeper' => 'required',
+            'housekeeping_status' => 'required',
+            
+        ]);
+
         return $validator;
     }
 }

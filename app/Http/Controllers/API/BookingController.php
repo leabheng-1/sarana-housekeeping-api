@@ -34,10 +34,15 @@ class BookingController extends BaseController
     public function selectAllBooking()
     {
         $booking = Booking::join('rooms', 'bookings.room_id', '=', 'rooms.id')
-            ->join('payments', 'bookings.payment_id', '=', 'payments.id')
-            ->join('guests', 'bookings.guest_id', '=', 'guests.id')
-            ->select('bookings.*', 'rooms.*', 'payments.*','guests.*' )
-            ->get();
+    ->join('payments', 'bookings.payment_id', '=', 'payments.id')
+    ->join('guests', 'bookings.guest_id', '=', 'guests.id')
+    ->leftJoin('housekeeping', function ($join) {
+        $join->on('bookings.room_id', '=', 'housekeeping.room_id')
+             ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = bookings.room_id)');
+    })
+    ->select('bookings.*', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*')
+    ->get();
+    
         return $this->sendResponse($booking, 'Booking retrieved successfully');
     }
     public function deleteGuest($id)
