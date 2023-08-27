@@ -35,6 +35,8 @@ Route::get('guests/find/{id}',  [GuestsController::class, 'find']);
 Route::put('booking/update/{id}', [BookingController::class, 'update']);
 Route::post('booking/insert', [BookingController::class, 'insert']);
 Route::get('booking/all', [BookingController::class, 'selectAllBooking']);
+Route::post('booking/checkin/{bookingId}', [BookingController::class, 'checkIn']);
+Route::post('booking/checkout/{bookingId}', [BookingController::class, 'checkOut']);
 
 // 
 Route::get('room/all', [RoomsController::class, 'selectAllRooms']);
