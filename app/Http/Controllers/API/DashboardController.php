@@ -7,6 +7,8 @@ use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Rooms;
+use App\Models\Guest;
+use App\Models\Housekeeping;
 class DashboardController extends BaseController
 {
     /**
@@ -20,24 +22,37 @@ class DashboardController extends BaseController
         $today = Carbon::today()->setTimezone('Asia/Phnom_Penh');
 
         // Get bookings with check-in date equal to today
-        $checkInBookings = Booking::whereDate('checkin_date', $today)->get();
-        $checkOutBookings = Booking::whereDate('checkout_date', $today)->get();
-
+        $checkInBookings = Booking::whereDate('checkin_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
+        $checkOutBookings = Booking::whereDate('checkout_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
         $data = [
             'check_in_bookings' => $checkInBookings,
             'check_out_bookings' => $checkOutBookings,
-            'today' =>  $today
         ];
 
         return $this->sendResponse($data, 'Today\'s check-in and check-out bookings retrieved successfully');
     }
+    public function getRoomData($st){
+        $roomDataQuery = Rooms::Join('housekeeping', function($join) use ($st) {
+            $join->on('rooms.id', '=', 'housekeeping.room_id')
+            ->whereRaw('housekeeping.date = (select max(date) from housekeeping where housekeeping.room_id = rooms.id)')
+            ->whereRaw('housekeeping.housekeeping_status = ?', [$st]);
+        })
+        ->select('rooms.id');
+        $roomDataCount = $roomDataQuery->count();
+        $roomData = $roomDataQuery->get();
+        $data = [
+            'data' => $roomData,
+            'count' => $roomDataCount,
+        ];
+        return $data;
+    }
     public function todayStatus(){
         $today = Carbon::today()->setTimezone('Asia/Phnom_Penh');
         $totalRoom = Rooms::count();
-        $availableRooms = Rooms::where('room_status', '=', 'Vacant')->count();
-        $clean = Rooms::where('housekeeping_status', '=','Clean')->count();
-        $cleaning = Rooms::where('housekeeping_status', '=','Cleaning')->count();
-        $dirty = Rooms::where('housekeeping_status', '=','Dirty')->count();
+        $availableRooms = Rooms::where('room_status', '=', 'available')->count();
+        $clean = $this->getRoomData('clean');
+        $cleaning = $this->getRoomData('cleaning');
+        $dirty = $this->getRoomData('dirty');
         $occupied = Rooms::where('room_status', '=','Occupied')->count();
         $block = Rooms::where('room_status', '=','Block')->count();
         $data = [
