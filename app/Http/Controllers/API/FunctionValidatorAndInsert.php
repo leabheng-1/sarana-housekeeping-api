@@ -18,7 +18,7 @@ class FunctionValidatorAndInsert
     {
         if ($operation === 'update' && $request->has('id')) {
             $guest = Guest::findOrFail($request->input('id'));
-        } else  {
+        } else {
             $guest = new Guest();
         }
 
@@ -50,7 +50,7 @@ class FunctionValidatorAndInsert
     public function bookingStayValidator($request)
     {
         $validator = Validator::make($request->all(), [
-            'room_type' => 'required',        
+            'room_type' => 'required',
         ]);
 
         return $validator;
@@ -60,9 +60,6 @@ class FunctionValidatorAndInsert
     {
         $validator = Validator::make($request->all(), [
             'payment' => 'nullable',
-            'payment_status' => 'nullable',
-            'extra_charge' => 'nullable',
-            'item_extra_charge' => 'nullable',
         ]);
 
         return $validator;
@@ -91,7 +88,7 @@ class FunctionValidatorAndInsert
         } else {
             $rooms = new rooms();
         }
-        
+
         $rooms->room_number = $request->input('room_number');
         $rooms->room_status = $request->input('room_status');
         $rooms->housekeeping_status = $request->input('housekeeping_status');
@@ -112,7 +109,7 @@ class FunctionValidatorAndInsert
         } else {
             $payment = new Payment();
         }
-        
+
         $payment->payment = $request->input('payment');
         $payment->charges = $request->input('charges');
         $payment->balance = $request->input('balance');
@@ -125,16 +122,16 @@ class FunctionValidatorAndInsert
     public function bookingInsert(Request $request, $operation)
     {
 
-       
-        
+
+
         // Assign the guest and payment objects to variables
-    
-        
+
+
         if ($operation === 'update' && $request->has('id')) {
             $booking = Booking::findOrFail($request->input('id'));
-            $request->merge(['id' =>$booking->guest_id ]);
+            $request->merge(['id' => $booking->guest_id]);
             $guestInsert = $this->guestInsert($request, $operation);
-            $request->merge(['id' =>$booking->payment_id ]);
+            $request->merge(['id' => $booking->payment_id]);
             $paymentInsert = $this->paymentInsert($request, $operation);
         } else {
             $booking = new Booking();
@@ -143,7 +140,10 @@ class FunctionValidatorAndInsert
         }
         $guest = $guestInsert;
         $payment = $paymentInsert;
-        $booking->room_id = $request->input('room_id');
+        $room_id_from_request = $request->input('room_id');
+        if ($room_id_from_request !== null) {
+            $booking->room_id = $room_id_from_request;
+        }
         $booking->room_type = $request->input('room_type');
         $booking->booking_status = $request->input('booking_status') ?? false;
         $booking->cancel_date = $request->input('cancel_date');
@@ -154,30 +154,29 @@ class FunctionValidatorAndInsert
         $booking->child = $request->input('child') ?? 0;
         $booking->created_by = $request->input('created_by') ?? 'null';
         $booking->note = $request->input('note') ?? 'null';
-    
+
         // Assign payment and guest IDs
         $booking->payment_id = $payment->id;
         $booking->guest_id = $guest->id;
-    
+
         $booking->save(); // Save the booking
-    
-        return $booking;        
+
+        return $booking;
     }
-    
+
     // bookingValidator
     public function bookingValidator(Request $request)
     {
-        $guestValidator = $this->guestValidator($request);
-        $bookingStayValidator = $this->bookingStayValidator($request);
-        $paymentValidator = $this->paymentValidator($request);
-    
-        $rules = array_merge(
-            $guestValidator->getMessageBag()->toArray(),
-            $bookingStayValidator->getMessageBag()->toArray(),
-            $paymentValidator->getMessageBag()->toArray()
-        );
-    
-        $validator = Validator::make($request->all(), $rules);
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'phone_number' => 'required',
+            'room_type' => 'required',
+            'checkin_date' => 'required',
+            'checkout_date' => 'required',
+            'payment_status' => 'required'
+
+        ]);
+
         return $validator;
     }
 
@@ -203,10 +202,11 @@ class FunctionValidatorAndInsert
     public function housekeepingValidator(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'room_id' => 'required|exists:rooms,id', // Assuming 'rooms' is the rooms table
+            'room_id' => 'required|exists:rooms,id',
+            // Assuming 'rooms' is the rooms table
             'housekeeper' => 'required',
             'housekeeping_status' => 'required',
-            
+
         ]);
 
         return $validator;
