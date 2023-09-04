@@ -5,8 +5,10 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Rooms;
 use App\Http\Controllers\API\FunctionValidatorAndInsert;
+use App\Http\Controllers\API\HousekeepingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+
 
 class RoomsController extends BaseController
 {
@@ -22,11 +24,25 @@ class RoomsController extends BaseController
          $room = $room_input->roomInsert($request, $operation);
          return $this->sendResponse($room, 'room inserted successfully');
      }
-    public function selectAllRooms()
-    {
-        $rooms = rooms::all();
-        return $this->sendResponse($rooms, 'rooms retrieved successfully');
-    }
+     public function selectAllRooms($id = null)
+     {
+         $query = Rooms::leftJoin('housekeeping', function ($join) {
+             $join->on('rooms.id', '=', 'housekeeping.room_id')
+                 ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = rooms.id)');
+         });
+     
+         if ($id) {
+             // Select only the 'id' column when an 'id' is provided
+             $query->select('rooms.id');
+         } else {
+             // Select all columns when 'id' is not provided
+             $query->select('rooms.*', 'housekeeping.*');
+         }
+     
+         $rooms = $query->get();
+     
+         return $this->sendResponse($rooms, 'Rooms retrieved successfully');
+     }
     public function delete($id)
     {
         $room = rooms::findOrFail($id);
@@ -35,15 +51,32 @@ class RoomsController extends BaseController
     }
     public function update(Request $request, $id)
     {
-        $room_update = new FunctionValidatorAndInsert(); 
-        $request->merge(['id' =>$id]);
-        $operation = 'update';
-        $room = $room_update->roomInsert($request, $operation );
-        return $this->sendResponse($room, 'room updated successfully');
+        $roomUpdate = new FunctionValidatorAndInsert();
+        $HousekeepingController = new HousekeepingController();
+        
+        // Find the room by ID
+        $room = Rooms::find($id);
+        
+        if (!$room) {
+            return $this->sendError('Room not found.', 404);
+        }
+        
+        // Update the room
+        $request->merge(['id' => $id]);
+        $roomOperation = 'update';
+        $room = $roomUpdate->roomInsert($request, $roomOperation);
+        $request->merge(['room_id' => $id]);
+        $HousekeepingController = $HousekeepingController->insert($request);
+        $data = [
+            'Room' => $room,
+            'Housekeeping' => $HousekeepingController,
+        ]; 
+        return $this->sendResponse($data, 'Room and housekeeping updated successfully');
+        
     }
     public function find($keyword)
     {
-        $rooms = room::where('id', 'LIKE', '%' . $keyword . '%')
+        $rooms = Rooms::where('id', 'LIKE', '%' . $keyword . '%')
             ->orWhere('name', 'LIKE', '%' . $keyword . '%')
             ->get();
 

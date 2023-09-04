@@ -67,16 +67,7 @@ class FunctionValidatorAndInsert
     public function roomValidator($request)
     {
         $validator = Validator::make($request->all(), [
-            'room_number' => 'nullable',
-            'room_status' => 'nullable',
-            'housekeeping_status' => 'nullable',
-            'roomtype' => 'nullable',
-            'floor' => 'nullable',
-            'room_rate' => 'nullable',
             'note' => 'nullable',
-            'fan' => 'nullable',
-            'air_conditioner' => 'nullable',
-            'housekeeper' => 'nullable',
         ]);
 
         return $validator;
@@ -91,14 +82,11 @@ class FunctionValidatorAndInsert
 
         $rooms->room_number = $request->input('room_number');
         $rooms->room_status = $request->input('room_status');
-        $rooms->housekeeping_status = $request->input('housekeeping_status');
         $rooms->roomtype = $request->input('roomtype');
         $rooms->floor = $request->input('floor');
         $rooms->room_rate = $request->input('room_rate');
         $rooms->note = $request->input('note');
-        $rooms->fan = $request->input('fan');
-        $rooms->air_conditioner = $request->input('air_conditioner');
-        $rooms->housekeeper = $request->input('housekeeper');
+        $rooms->air_method = $request->input('air_method');
         $rooms->save();
         return $rooms;
     }
@@ -189,10 +177,17 @@ class FunctionValidatorAndInsert
             $housekeeping = new Housekeeping();
         }
 
-        $housekeeping->room_id = $request->input('room_id');
+        $room_id_from_request = $request->input('room_id');
+        if ($room_id_from_request !== null) {
+            $housekeeping->room_id = $request->input('room_id');
+        }
         $housekeeping->housekeeper = $request->input('housekeeper');
+        $housekeeping_status = $request->input('room_id');
+        if($housekeeping_status != null){
+            
+        }
         $housekeeping->housekeeping_status = $request->input('housekeeping_status');
-        $housekeeping->date = $request->input('date');
+        $housekeeping->date = $request->input('date', now()->format('Y-m-d'));
         $housekeeping->save();
 
         return $housekeeping;
@@ -203,7 +198,6 @@ class FunctionValidatorAndInsert
     {
         $validator = Validator::make($request->all(), [
             'room_id' => 'required|exists:rooms,id',
-            // Assuming 'rooms' is the rooms table
             'housekeeper' => 'required',
             'housekeeping_status' => 'required',
 
