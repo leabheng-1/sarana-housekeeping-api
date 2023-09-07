@@ -3,9 +3,10 @@
 This document provides an overview of the routes and functionality implemented in our Laravel application.
 
 # Cloning the Repository
- ```bash
- git clone git@github.com:leabheng-1/sarana-housekeeping-api.git
- ```bash
+```bash
+# Clone the Sarana Housekeeping API repository
+git clone https://github.com/leabheng-1/sarana-housekeeping-api.git
+
 ## API Base URL
 
 You can access the API using the following base URL: [http://localhost:8000/api](http://localhost:8000/api)
