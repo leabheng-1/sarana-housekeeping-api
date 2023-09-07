@@ -21,7 +21,8 @@ use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\HousekeepingController;
 use App\Http\Controllers\API\StatusController;
- 
+use App\Http\Controllers\API\report; 
+
 Route::post('/guests/insert', [GuestsController::class, 'insert']);
 Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [RegisterController::class, 'login']);
@@ -64,7 +65,11 @@ Route::get('/housekeeping/all', [HousekeepingController::class, 'selectAllHousek
 Route::delete('/housekeeping/{id}', [HousekeepingController::class, 'delete']);
 Route::put('/housekeeping/update/{id}', [HousekeepingController::class, 'update']);
 Route::get('/housekeeping/find/{keyword}', [HousekeepingController::class, 'find']);
-
+// 
+Route::get('/report/monthly', [report::class, 'monthly']);
+Route::get('/report/weekly', [report::class, 'weekly']);
+Route::get('/report/daily', [report::class, 'daily']);
+// 
 Route::get('/status/bookings', [StatusController::class, 'getBookingsByStatusToday']);
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
