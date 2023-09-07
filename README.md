@@ -10,6 +10,7 @@ To get started with this project, follow these steps:
    ```bash
    git clone https://github.com/leabheng-1/sarana-housekeeping-api.git
 
+<<<<<<< HEAD
 ## Guest Management
 
 - **Insert Guest**: [POST /api/guests/insert](http://localhost:8000/api/guests/insert)
@@ -70,6 +71,81 @@ To get started with this project, follow these steps:
 ## Status
 
 - **Bookings by Status Today**: [GET /api/status/bookings](http://localhost:8000/api/status/bookings)
+=======
+
+
+
+
+
+# API Documentation
+
+Welcome to the API documentation for your application. Below, you'll find a list of available routes along with their descriptions and usage instructions.
+
+**Base URL**: `http://localhost:8000/api`
+
+## Guests
+
+### Insert a Guest
+- **Endpoint**: `/guests/insert` (POST)
+- **Description**: Insert a new guest record.
+- **Usage**: `POST http://localhost:8000/api/guests/insert`
+
+### Register User
+- **Endpoint**: `/register` (POST)
+- **Description**: Register a new user.
+- **Usage**: `POST http://localhost:8000/api/register`
+
+### Log In
+- **Endpoint**: `/login` (POST)
+- **Description**: Log in a user.
+- **Usage**: `POST http://localhost:8000/api/login`
+
+### Select All Guests
+- **Endpoint**: `/guests/select_all` (GET)
+- **Description**: Retrieve all guest records.
+- **Usage**: `GET http://localhost:8000/api/guests/select_all`
+
+### Delete a Guest
+- **Endpoint**: `/guests/delete/{id}` (DELETE)
+- **Description**: Delete a guest record by ID.
+- **Usage**: `DELETE http://localhost:8000/api/guests/delete/{id}`
+
+### Update a Guest
+- **Endpoint**: `/guests/update/{id}` (PUT)
+- **Description**: Update a guest record by ID.
+- **Usage**: `PUT http://localhost:8000/api/guests/update/{id}`
+
+### Find a Guest
+- **Endpoint**: `/guests/find/{id}` (GET)
+- **Description**: Find a guest record by ID.
+- **Usage**: `GET http://localhost:8000/api/guests/find/{id}`
+
+## Booking
+
+### Update a Booking
+- **Endpoint**: `/booking/update/{id}` (PUT)
+- **Description**: Update a booking by ID.
+- **Usage**: `PUT http://localhost:8000/api/booking/update/{id}`
+
+### Cancel a Booking
+- **Endpoint**: `/booking/cancel/{id}` (PUT)
+- **Description**: Cancel a booking by ID.
+- **Usage**: `PUT http://localhost:8000/api/booking/cancel/{id}`
+
+# ... (Continue documenting other routes in a similar format)
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> f70d1fa5d14429b9b356bbb7ab03459affc45afa
 
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
