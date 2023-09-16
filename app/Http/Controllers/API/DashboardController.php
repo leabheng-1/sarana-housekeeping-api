@@ -24,9 +24,24 @@ class DashboardController extends BaseController
         // Get bookings with check-in date equal to today
         $checkInBookings = Booking::whereDate('checkin_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
         $checkOutBookings = Booking::whereDate('checkout_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
+        $arrival_date = Booking::whereDate('arrival_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
+        $departure_date = Booking::whereDate('departure_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
+        $count_checkin = $checkInBookings->count();
+        $count_checkout = $checkOutBookings->count();
+        $count_arrival = $arrival_date->count();
+        $count_departure = $departure_date->count();
+        
         $data = [
             'check_in_bookings' => $checkInBookings,
             'check_out_bookings' => $checkOutBookings,
+            'checkin_count'=> $count_checkin ,
+            'checkout_count'=> $count_checkout ,
+            'departure_date'=>$departure_date,
+            'arrival_date'=>$arrival_date,
+            'count_arrival'=> $count_arrival ,
+            'count_departure'=> $count_departure ,
+
+
         ];
 
         return $this->sendResponse($data, 'Today\'s check-in and check-out bookings retrieved successfully');
@@ -51,10 +66,19 @@ class DashboardController extends BaseController
         $totalRoom = Rooms::count();
         $availableRooms = Rooms::where('room_status', '=', 'available')->count();
         $clean = $this->getRoomData('clean');
+        $inHouse = Booking::where('booking_status', '=', 'in_house')->count();
         $cleaning = $this->getRoomData('cleaning');
         $dirty = $this->getRoomData('dirty');
         $occupied = Rooms::where('room_status', '=','Occupied')->count();
         $block = Rooms::where('room_status', '=','Block')->count();
+        $checkInBookings = Booking::whereDate('checkin_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
+        $checkOutBookings = Booking::whereDate('checkout_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
+        $arrival_date = Booking::whereDate('arrival_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
+        $departure_date = Booking::whereDate('departure_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
+        $count_checkin = $checkInBookings->count();
+        $count_checkout = $checkOutBookings->count();
+        $count_arrival = $arrival_date->count();
+        $count_departure = $departure_date->count();
         $data = [
             'totalRoom' => $totalRoom,
             'available_rooms' => $availableRooms,
@@ -62,7 +86,12 @@ class DashboardController extends BaseController
             'cleaning' => $cleaning,
             'dirty' => $dirty,
             'occupied' => $occupied,
-            'block' => $block
+            'block' => $block,
+            'checkin_count'=> $count_checkin ,
+            'checkout_count'=> $count_checkout ,
+            'inHouse'=>$inHouse,
+            'count_arrival'=> $count_arrival ,
+            'count_departure'=> $count_departure ,
         ]; 
 
         return $this->sendResponse($data , '');

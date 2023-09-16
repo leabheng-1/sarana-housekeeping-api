@@ -48,8 +48,8 @@ class BookingController extends BaseController
             ->leftJoin('payments', 'bookings.payment_id', '=', 'payments.id')
             ->leftJoin('guests', 'bookings.guest_id', '=', 'guests.id')
             ->leftJoin('housekeeping', function ($join) {
-                $join->on('bookings.room_id', '=', 'housekeeping.room_id')
-                    ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = bookings.room_id)');
+                $join->on('rooms.id', '=', 'housekeeping.room_id')
+                    ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = rooms.id)');
             })
             ->select('bookings.id as booking_id','bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*');
 
@@ -67,10 +67,20 @@ class BookingController extends BaseController
             $guestName = $request->input('guest_name');
             $query->where('guests.name', 'LIKE', '%' . $guestName . '%');
         }
-        
-        $booking = $query->get();
+        if($request->has('page'))
+        {
 
-        return $this->sendResponse($booking, 'Booking retrieved successfully');
+            $page = $request->input('page', 1); // Default to page 1 if not provided
+        $itemsPerPage = $request->input('perPage', 10); // Default to 10 items per page
+    
+        // Apply pagination to the query
+        $bookings = $query->paginate($itemsPerPage, ['*'], 'page', $page);
+        }else{
+            $bookings = $query->get();  
+        }
+        
+    
+        return $this->sendResponse($bookings, 'Booking retrieved successfully');
     }
     public function roomVariable(Request $request)
     {
