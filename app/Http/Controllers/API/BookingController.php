@@ -127,7 +127,7 @@ class BookingController extends BaseController
         return $this->sendResponse($bookings, 'Bookings retrieved successfully.');
           }
 
-          public function selectBookingById($id = null)
+          public function selectBooking(Request $request)
           {
               $query = Rooms::rightJoin('bookings', 'rooms.id', '=', 'bookings.room_id')
                   ->leftJoin('payments', 'bookings.payment_id', '=', 'payments.id')
@@ -138,18 +138,25 @@ class BookingController extends BaseController
                   })
                   ->select('bookings.*', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*');
           
-              if ($id !== null) {
-                  $query->where('bookings.id', $id);
-              }
+            if($request->has('id')){
+            $id = $request->input('id');
+                  $query->where('bookings.id', $id );
+              };
+              if($request->has('page'))
+              {
+      
+                  $page = $request->input('page', 1); // Default to page 1 if not provided
+              $itemsPerPage = $request->input('perPage', 10); // Default to 10 items per page
           
-              $booking = $query->get();
+              // Apply pagination to the query
+              $booking = $query->paginate($itemsPerPage, ['*'], 'page', $page);
+              }else{
+                  $booking = $query->get();  
+              };
+              
           
               return $this->sendResponse($booking, 'Booking(s) retrieved successfully');
           }   
-              public function selectBooking()
-    {
-        return $this->selectBookingById();
-    }
     public function checkIn($bookingId)
     {
         $booking = Booking::findOrFail($bookingId);
