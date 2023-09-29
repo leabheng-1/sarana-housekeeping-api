@@ -73,23 +73,37 @@ class FunctionValidatorAndInsert
         return $validator;
     }
     public function roomInsert(Request $request, $operation)
-    {
-        if ($operation === 'update' && $request->has('id')) {
-            $rooms = rooms::findOrFail($request->input('id'));
-        } else {
-            $rooms = new rooms();
-        }
-
-        $rooms->room_number = $request->input('room_number');
-        $rooms->room_status = $request->input('room_status');
-        $rooms->roomtype = $request->input('roomtype');
-        $rooms->floor = $request->input('floor');
-        $rooms->room_rate = $request->input('room_rate');
-        $rooms->note = $request->input('note');
-        $rooms->air_method = $request->input('air_method');
-        $rooms->save();
-        return $rooms;
+{
+    if ($operation === 'update' && $request->has('id')) {
+        $rooms = rooms::findOrFail($request->input('id'));
+    } else {
+        $rooms = new rooms();
     }
+
+    // Define an array of fields and their corresponding request input names
+    $fields = [
+        'room_number' => 'room_number',
+        'room_status' => 'room_status',
+        'roomtype' => 'roomtype',
+        'floor' => 'floor',
+        'room_rate' => 'room_rate',
+        'note' => 'note',
+        'air_method' => 'air_method',
+    ];
+
+    // Loop through the fields and update the room object if the input is not null
+    foreach ($fields as $field => $inputName) {
+        $inputValue = $request->input($inputName);
+        if ($inputValue !== null) {
+            $rooms->$field = $inputValue;
+        }
+    }
+
+    $rooms->save();
+
+    return $rooms;
+}
+
     public function paymentInsert(Request $request, $operation)
     {
         if ($operation === 'update' && $request->has('id')) {
@@ -159,9 +173,8 @@ class FunctionValidatorAndInsert
             'name' => 'required',
             'phone_number' => 'required',
             'room_type' => 'required',
-            'checkin_date' => 'required',
-            'checkout_date' => 'required',
-            'payment_status' => 'required'
+            'checkin_date' => 'required|date',
+            'checkout_date' => 'required|date',
 
         ]);
 

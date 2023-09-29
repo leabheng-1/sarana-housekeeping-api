@@ -9,9 +9,9 @@ use App\Models\Guest;
 use App\Models\Rooms;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\FunctionValidatorAndInsert;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-
 class BookingController extends BaseController
 {
     /**
@@ -102,26 +102,51 @@ class BookingController extends BaseController
         
         return $this->sendResponse($availableRooms, 'Available rooms retrieved successfully');
     }
-    public function selectBookingById($id = null)
+
+
+    public function room_date(Request $request)
     {
-        $query = Rooms::leftJoin('bookings', 'rooms.id', '=', 'bookings.room_id')
-            ->leftJoin('payments', 'bookings.payment_id', '=', 'payments.id')
-            ->leftJoin('guests', 'bookings.guest_id', '=', 'guests.id')
-            ->leftJoin('housekeeping', function ($join) {
-                $join->on('bookings.room_id', '=', 'housekeeping.room_id')
-                    ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = bookings.room_id)');
-            })
-            ->select('bookings.*', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*');
-    
-        if ($id !== null) {
-            $query->where('bookings.id', $id);
-        }
-    
-        $booking = $query->get();
-    
-        return $this->sendResponse($booking, 'Booking(s) retrieved successfully');
-    }
-    public function selectBooking()
+        $roomId = $request->input('room_id');
+        $selectDate = $request->input('selectDate');
+
+        $checkin = DB::table('bookings')
+            ->where('room_id', $roomId)
+            ->where('checkin_date', '>=', $selectDate)
+            ->orderBy('checkin_date', 'asc')
+            ->first();
+            $checkout = DB::table('bookings')
+            ->where('room_id', $roomId)
+            ->where('checkout_date', '<=', $selectDate)
+            ->orderBy('checkout_date', 'asc')
+            ->first();
+            $bookings = [
+                'checkin' => $checkin,
+                'checkout' => $checkout,
+            ];
+        
+        return $this->sendResponse($bookings, 'Bookings retrieved successfully.');
+          }
+
+          public function selectBookingById($id = null)
+          {
+              $query = Rooms::rightJoin('bookings', 'rooms.id', '=', 'bookings.room_id')
+                  ->leftJoin('payments', 'bookings.payment_id', '=', 'payments.id')
+                  ->leftJoin('guests', 'bookings.guest_id', '=', 'guests.id')
+                  ->leftJoin('housekeeping', function ($join) {
+                      $join->on('bookings.room_id', '=', 'housekeeping.room_id')
+                          ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = bookings.room_id)');
+                  })
+                  ->select('bookings.*', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*');
+          
+              if ($id !== null) {
+                  $query->where('bookings.id', $id);
+              }
+          
+              $booking = $query->get();
+          
+              return $this->sendResponse($booking, 'Booking(s) retrieved successfully');
+          }   
+              public function selectBooking()
     {
         return $this->selectBookingById();
     }

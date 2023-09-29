@@ -43,7 +43,7 @@ Route::get('booking/roomVariable', [BookingController::class, 'roomVariable']);
 Route::get('booking/allTime', [BookingController::class, 'selectBooking']);
 Route::post('booking/checkin/{bookingId}', [BookingController::class, 'checkIn']);
 Route::post('booking/checkout/{bookingId}', [BookingController::class, 'checkOut']);
-
+Route::get('booking/room_date', [BookingController::class, 'room_date']);
 
 // 
 Route::get('room/all', [RoomsController::class, 'selectAllRooms']);
