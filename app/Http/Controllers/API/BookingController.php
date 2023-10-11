@@ -54,16 +54,16 @@ class BookingController extends BaseController
             ->select('bookings.id as booking_id','bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*');
 
         // Check if room_status and booking_status parameters are provided
-        if ($request->has('room_status')) {
+        if ($request->has('room_status') && $request->input('room_status') != 'All' && $request->input('room_status') != ''  ) {
             $roomStatus = $request->input('room_status');
             $query->where('rooms.room_status', $roomStatus);
         }
 
-        if ($request->has('booking_status')) {
-            $bookingStatus = $request->input('booking_status');
-            $query->where('bookings.booking_status', $bookingStatus);
+        if ($request->has('housekeeping_status') && $request->input('housekeeping_status') != 'All') {
+            $bookingStatus = $request->input('housekeeping_status');
+            $query->where('housekeeping.housekeeping_status', $bookingStatus);
         }
-        if ($request->has('guest_name')) {
+        if ($request->has('guest_name') && $request->input('guest_name') != 'All') {
             $guestName = $request->input('guest_name');
             $query->where('guests.name', 'LIKE', '%' . $guestName . '%');
         }
@@ -83,26 +83,29 @@ class BookingController extends BaseController
         return $this->sendResponse($bookings, 'Booking retrieved successfully');
     }
     public function roomVariable(Request $request)
-    {
-        $checkinDate = $request->input('checkin');
-        $checkoutDate = $request->input('checkout');
-        
-        $availableRooms = DB::table('rooms')
-            ->leftJoin('bookings', 'rooms.id', '=', 'bookings.room_id')
-            ->where(function ($query) use ($checkinDate, $checkoutDate) {
-                $query->where(function ($query) use ($checkinDate, $checkoutDate) {
-                    $query->where('checkin_date', '>', $checkoutDate)
-                        ->orWhere('checkout_date', '<', $checkinDate);
-                })
-                ->orWhereNull('bookings.id');
-            })
-            ->select('rooms.*')
-            ->distinct()
-            ->get();
-        
-        return $this->sendResponse($availableRooms, 'Available rooms retrieved successfully');
-    }
+{
+    $checkinDate = $request->input('checkin');
+    $checkoutDate = $request->input('checkout');
+    $roomType = $request->input('room_type'); // Assuming 'room_type' is the input field name for room type.
 
+    $availableRooms = DB::table('rooms')
+        ->leftJoin('bookings', 'rooms.id', '=', 'bookings.room_id')
+        ->where(function ($query) use ($checkinDate, $checkoutDate) {
+            $query->where(function ($query) use ($checkinDate, $checkoutDate) {
+                $query->where('checkin_date', '>', $checkoutDate)
+                    ->orWhere('checkout_date', '<', $checkinDate);
+            })
+            ->orWhereNull('bookings.id');
+        })
+        ->when($roomType, function ($query) use ($roomType) {
+            $query->where('rooms.roomtype', '=', $roomType);
+        })
+        ->select('rooms.*')
+        ->distinct()
+        ->get();
+
+    return $this->sendResponse($availableRooms, 'Available rooms retrieved successfully');
+}
 
     public function room_date(Request $request)
     {
@@ -161,7 +164,7 @@ class BookingController extends BaseController
     {
         $booking = Booking::findOrFail($bookingId);
 
-        if ($booking->booking_status === 'checked_in') {
+        if ($booking->booking_status === 'Checked In') {
             return $this->sendError('Guest is already checked in.', '', 404);
         }
 
@@ -169,12 +172,10 @@ class BookingController extends BaseController
         $currentDate = now()->toDateString();
 
         // Compare the current date with the check-in date
-        if ($booking->checkin_date >= $currentDate) {
+        if ($booking->checkin_date <= $currentDate) {
             $booking->booking_status = 'In house';
             $booking->checkin_date = now();
-
             // Additional actions
-
             $booking->save();
             return $this->sendResponse($booking, 'Guest checked in successfully.');
 
