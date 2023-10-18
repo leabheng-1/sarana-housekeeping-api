@@ -69,6 +69,8 @@ Route::get('/housekeeping/find/{keyword}', [HousekeepingController::class, 'find
 Route::get('/report/monthly', [report::class, 'monthly']);
 Route::get('/report/weekly', [report::class, 'weekly']);
 Route::get('/report/daily', [report::class, 'daily']);
+Route::get('/report/monthlyCharge', [report::class, 'monthlyCharge']);
+Route::get('/report/monthlyGuestCount', [report::class, 'monthlyGuestCountByRoomType']);
 // 
 Route::get('/status/bookings', [StatusController::class, 'getBookingsByStatusToday']);
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
