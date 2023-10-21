@@ -212,7 +212,7 @@ public function monthly(Request $request) {
         $query->where('bookings.room_type', $roomType);
     }
 
-    if ($request->has('room_number')) {
+    if ($request->has('room_number') && $request->input('room_number') != 'All' ) {
         $roomNumber = $request->input('room_number');
         $query->where('rooms.room_number', $roomNumber);
     }

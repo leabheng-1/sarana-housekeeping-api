@@ -24,25 +24,34 @@ class RoomsController extends BaseController
          $room = $room_input->roomInsert($request, $operation);
          return $this->sendResponse($room, 'room inserted successfully');
      }
-     public function selectAllRooms($id = null)
-     {
-         $query = Rooms::leftJoin('housekeeping', function ($join) {
-             $join->on('rooms.id', '=', 'housekeeping.room_id')
-                 ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = rooms.id)');
-         });
-     
-         if ($id) {
-             // Select only the 'id' column when an 'id' is provided
-             $query->select('rooms.id');
-         } else {
-             // Select all columns when 'id' is not provided
-             $query->select('rooms.*', 'housekeeping.*');
-         }
-     
-         $rooms = $query->get();
-     
-         return $this->sendResponse($rooms, 'Rooms retrieved successfully');
-     }
+     public function selectAllRooms(Request $request)
+{
+    $roomType = $request->input('roomType'); // Get the 'roomType' parameter from the request
+    $id = $request->input('id'); // Get the 'id' parameter from the request
+
+    $query = Rooms::leftJoin('housekeeping', function ($join) {
+        $join->on('rooms.id', '=', 'housekeeping.room_id')
+            ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = rooms.id)');
+    });
+
+    if ($roomType && $roomType != 'All') {
+        // Add a where clause to filter by room type
+        $query->where('rooms.roomtype', $roomType);
+    }
+
+    if ($id) {
+        // Select only the 'id' column when an 'id' is provided
+        $query->select('rooms.id');
+    } else {
+        // Select all columns when 'id' is not provided
+        $query->select('rooms.*', 'housekeeping.*');
+    }
+
+    $rooms = $query->get();
+
+    return $this->sendResponse($rooms, 'Rooms retrieved successfully');
+}
+
     public function delete($id)
     {
         $room = rooms::findOrFail($id);
