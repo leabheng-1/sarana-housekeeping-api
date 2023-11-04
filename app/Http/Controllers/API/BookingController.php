@@ -42,6 +42,7 @@ class BookingController extends BaseController
 
         $query = Rooms::leftJoin('bookings', function ($join) use ($dateToCompare) {
             $join->on('rooms.id', '=', 'bookings.room_id')
+            ->whereNotIn('bookings.booking_status', ['Cancel', 'Void', 'No Show', 'Checked Out'])
                 ->whereDate('bookings.checkin_date', '<=', $dateToCompare)
                 ->whereDate('bookings.checkout_date', '>=', $dateToCompare);
         })
@@ -214,9 +215,7 @@ class BookingController extends BaseController
     {
         $updatedBooking = new FunctionValidatorAndInsert();
         $validator = $updatedBooking->bookingValidator($request);
-        if ($validator->fails()) {
-            return $this->sendError('Validation Error', $validator->errors(), 400);
-        }
+
 
         // Find the booking by ID
         $booking = Booking::find($id);
@@ -243,7 +242,7 @@ class BookingController extends BaseController
         }
     }
     
-    public function updateBookingStatus($id, $action)
+    public function updateBookingStatus( $action,$id)
 {
     $booking = Booking::find($id);
 
@@ -253,12 +252,28 @@ class BookingController extends BaseController
 
     // Update the booking status based on the action
     switch ($action) {
-        case 'void':
+        case 'Void':
             $booking->booking_status = 'Void';
             break;
         case 'cancel':
-            $booking->booking_status = 'Cancelled';
+            $booking->booking_status = 'Cancel';
             break;
+            case 'undocheckin':
+                $booking->booking_status = 'booking';
+                break;
+                case 'undocheckout':
+                    $booking->booking_status = 'booking';
+                    break;
+                    
+            case 'no_show':
+                $booking->booking_status = 'No Show';
+                break;  
+                case 'checkin':
+                    $booking->booking_status = 'In House';
+                    break;  
+                    case 'checkout':
+                        $booking->booking_status = 'Checked Out';
+                        break;            
         // Add more cases for other actions if needed
         default:
             return $this->sendError('Invalid Action', 'The provided action is not valid.', 400);

@@ -22,8 +22,27 @@ class DashboardController extends BaseController
         $today = Carbon::today()->setTimezone('Asia/Phnom_Penh');
 
         // Get bookings with check-in date equal to today
-        $checkInBookings = Booking::whereDate('checkin_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
-        $checkOutBookings = Booking::whereDate('checkout_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
+        $checkInBookings = Booking::whereDate('checkin_date', $today)
+        ->join('rooms', 'rooms.id', '=', 'bookings.room_id')
+        ->leftJoin('payments', 'bookings.payment_id', '=', 'payments.id')
+        ->leftJoin('guests', 'bookings.guest_id', '=', 'guests.id')
+        ->leftJoin('housekeeping', function ($join) {
+            $join->on('bookings.room_id', '=', 'housekeeping.room_id')
+                 ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = bookings.room_id)');
+        })->select('bookings.id as booking_id','bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*')
+        ->where('bookings.booking_status', '!=', 'In House') // Add this line to filter by booking status
+        ->get();
+    
+
+        $checkOutBookings = Booking::whereDate('checkout_date', $today)->join('rooms', 'rooms.id', '=', 'bookings.room_id')
+        ->leftJoin('payments', 'bookings.payment_id', '=', 'payments.id')
+        ->leftJoin('guests', 'bookings.guest_id', '=', 'guests.id')
+        ->leftJoin('housekeeping', function ($join) {
+            $join->on('bookings.room_id', '=', 'housekeeping.room_id')
+                 ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = bookings.room_id)');
+        })->select('bookings.id as booking_id','bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*')
+        ->where('bookings.booking_status', '!=', 'Check Out') // Add this line to filter by booking status
+        ->get();
         $arrival_date = Booking::whereDate('arrival_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
         $departure_date = Booking::whereDate('departure_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
         $count_checkin = $checkInBookings->count();
@@ -71,7 +90,9 @@ class DashboardController extends BaseController
         $dirty = $this->getRoomData('dirty');
         $occupied = Rooms::where('room_status', '=','Occupied')->count();
         $block = Rooms::where('room_status', '=','Block')->count();
-        $checkInBookings = Booking::whereDate('checkin_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
+        $checkInBookings = Booking::whereDate('checkin_date', $today)->join
+        
+        ('guests', 'bookings.guest_id', '=', 'guests.id')->get();
         $checkOutBookings = Booking::whereDate('checkout_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
         $arrival_date = Booking::whereDate('arrival_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
         $departure_date = Booking::whereDate('departure_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();

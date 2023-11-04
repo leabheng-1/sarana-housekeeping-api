@@ -32,7 +32,7 @@ Route::put('/guests/update/{id}', [GuestsController::class, 'updateGuest']);
 Route::get('guests/find/{id}',  [GuestsController::class, 'find']);
 
 // 
-
+Route::put('booking/updatestatus/{action}/{id}', [BookingController::class, 'updateBookingStatus']);
 Route::put('booking/update/{id}', [BookingController::class, 'update']);
 Route::put('booking/cancel/{id}', [BookingController::class, 'cancel']);
 Route::put('booking/void/{id}', [BookingController::class, 'void']);
@@ -41,8 +41,8 @@ Route::post('booking/insert', [BookingController::class, 'insert']);
 Route::get('booking/all', [BookingController::class, 'selectAllBooking']);
 Route::get('booking/roomVariable', [BookingController::class, 'roomVariable']);
 Route::get('booking/allTime', [BookingController::class, 'selectBooking']);
-Route::post('booking/checkin/{bookingId}', [BookingController::class, 'checkIn']);
-Route::post('booking/checkout/{bookingId}', [BookingController::class, 'checkOut']);
+Route::put('booking/checkin/{bookingId}', [BookingController::class, 'checkIn']);
+Route::put('booking/checkout/{bookingId}', [BookingController::class, 'checkOut']);
 Route::get('booking/room_date', [BookingController::class, 'room_date']);
 
 // 

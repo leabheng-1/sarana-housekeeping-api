@@ -62,7 +62,7 @@ tr:nth-child(even) {
             <td>{{ $booking->child }}</td>
             <td>{{ $booking->checkin_date }}</td>
             <td>{{ $booking->checkout_date }}</td>
-            <td>{{ $booking->roomtype }}</td>
+            <td>{{ $booking->room_type }}</td>
             <td>{{ $booking->room_number }}</td>
             <td>{{ $booking->balance + $booking->extra_charge }}</td>
         </tr>
