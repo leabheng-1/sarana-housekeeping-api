@@ -150,6 +150,7 @@ class FunctionValidatorAndInsert
         $booking->booking_status = $request->input('booking_status') ?? false;
         $booking->cancel_date = $request->input('cancel_date');
         $booking->arrival_date = $request->input('arrival_date');
+        $booking->departure_date = $request->input('departure_date');
         $booking->checkin_date = $request->input('checkin_date');
         $booking->checkout_date = $request->input('checkout_date');
         $booking->adults = $request->input('adults') ?? 1;

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Guest;
+use App\Models\Booking;
 use App\Http\Controllers\API\FunctionValidatorAndInsert;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -29,7 +30,7 @@ class GuestsController extends BaseController
      }
     public function selectAllGuests()
     {
-        $guests = Guest::all();
+        $guests = Guest::rightJoin('bookings', 'guests.id', '=', 'bookings.guest_id')->get() ;
         return $this->sendResponse($guests, 'Guests retrieved successfully');
     }
     public function deleteGuest($id)

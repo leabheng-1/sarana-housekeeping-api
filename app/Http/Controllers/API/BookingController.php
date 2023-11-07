@@ -38,11 +38,14 @@ class BookingController extends BaseController
     {
         $dateParam = $request->input('date');
         $today = now()->format('Y-m-d');
+        $today_date = Carbon::today()->setTimezone('Asia/Phnom_Penh');
+
+
         $dateToCompare = $dateParam ?? $today;
 
         $query = Rooms::leftJoin('bookings', function ($join) use ($dateToCompare) {
             $join->on('rooms.id', '=', 'bookings.room_id')
-            ->whereNotIn('bookings.booking_status', ['Cancel', 'Void', 'No Show', 'Checked Out'])
+            ->whereNotIn('bookings.booking_status', ['Cancel', 'Void', 'Checked Out'])
                 ->whereDate('bookings.checkin_date', '<=', $dateToCompare)
                 ->whereDate('bookings.checkout_date', '>=', $dateToCompare);
         })
@@ -55,14 +58,29 @@ class BookingController extends BaseController
             ->select('bookings.id as booking_id','bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*');
 
         // Check if room_status and booking_status parameters are provided
-        if ($request->has('room_status') && $request->input('room_status') != 'All' && $request->input('room_status') != ''  ) {
-            $roomStatus = $request->input('room_status');
-            $query->where('rooms.room_status', $roomStatus);
-        }
+        if ($request->has('booking_status') && $request->input('booking_status') != 'All' && $request->input('booking_status') != ''  ) {
+            $roomStatus = $request->input('booking_status');
+            if ($roomStatus == 'Varaible' ) {
+                $query->WhereNull('bookings.id');
+            }
+           else{
+            $query->where('bookings.booking_status', $roomStatus);
 
+           }
+        }
+          if ($request->has('housekeeping_status') && $request->input('housekeeping_status') != 'All') {
+            $bookingStatus = $request->input('housekeeping_status');
+   
+            $query->where('housekeeping.housekeeping_status', $bookingStatus);
+     
+            
+        }
         if ($request->has('housekeeping_status') && $request->input('housekeeping_status') != 'All') {
             $bookingStatus = $request->input('housekeeping_status');
+   
             $query->where('housekeeping.housekeeping_status', $bookingStatus);
+     
+            
         }
         if ($request->has('guest_name') && $request->input('guest_name') != 'All') {
             $guestName = $request->input('guest_name');
@@ -226,7 +244,7 @@ class BookingController extends BaseController
         $request->merge(['id' => $id]);
         $operation = 'update';
         $updatedBooking->bookingInsert($request, $operation);
-        return $this->selectBookingById($id);
+        return $this->sendResponse(null, 'successfully');
     }
 
     public function find($keyword)
