@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\API\BaseController as BaseController;
-use App\Models\Guest;
 use App\Models\Booking;
-use App\Http\Controllers\API\FunctionValidatorAndInsert;
+use App\Models\Payment;
+use App\Models\Guest;
+use App\Models\Rooms;
+use App\Models\Housekeeping;
 use Illuminate\Http\Request;
+use App\Http\Controllers\API\FunctionValidatorAndInsert;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\API\HousekeepingController;
 class GuestsController extends BaseController
 {
     /**
@@ -28,10 +33,31 @@ class GuestsController extends BaseController
          $guest = $guest_input->guestInsert($request, $operation);
          return $this->sendResponse($guest, 'Guest s inserted successfully');
      }
-    public function selectAllGuests()
+    public function selectAllGuests(Request $request)
     {
-        $guests = Guest::rightJoin('bookings', 'guests.id', '=', 'bookings.guest_id')->get() ;
-        return $this->sendResponse($guests, 'Guests retrieved successfully');
+        $guests = Guest::rightJoin('bookings', 'guests.id', '=', 'bookings.guest_id')
+        ->leftJoin('payments', 'bookings.payment_id', '=', 'payments.id')
+        ->leftJoin('rooms', 'bookings.guest_id', '=', 'rooms.id')
+        ->leftJoin('housekeeping', function ($join) {
+            $join->on('bookings.room_id', '=', 'housekeeping.room_id')
+                ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = bookings.room_id)');
+        })
+        ->select('bookings.id as booking_id', 'bookings.room_rate as booking_room_rate' ,'bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*');
+
+        // $guests = Guest::rightJoin('bookings', 'guests.id', '=', 'bookings.guest_id') ;
+        
+        if($request->has('page'))
+        {
+
+            $page = $request->input('page', 1); // Default to page 1 if not provided
+        $itemsPerPage = $request->input('perPage', 10); // Default to 10 items per page
+    
+        // Apply pagination to the query
+        $bookings = $guests->paginate($itemsPerPage, ['*'], 'page', $page);
+        }else{
+            $bookings = $guests->get();  
+        }
+        return $this->sendResponse($bookings, 'Guests retrieved successfully');
     }
     public function deleteGuest($id)
     {

@@ -28,15 +28,19 @@ class RoomsController extends BaseController
 {
     $roomType = $request->input('roomType'); // Get the 'roomType' parameter from the request
     $id = $request->input('id'); // Get the 'id' parameter from the request
-
+    $room_number = $request->input('room_number');
     $query = Rooms::leftJoin('housekeeping', function ($join) {
         $join->on('rooms.id', '=', 'housekeeping.room_id')
             ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = rooms.id)');
     });
 
-    if ($roomType && $roomType != 'All') {
+    if ($roomType && $roomType != 'All' ) {
         // Add a where clause to filter by room type
-        $query->where('rooms.roomtype', $roomType);
+        $query->where('rooms.roomtype', roomType);
+    }
+    if ($room_number && $room_number != 'All' && $room_number != '' ) {
+        // Add a where clause to filter by room type
+        $query->where('rooms.room_number', $room_number);
     }
 
     if ($id) {
@@ -44,7 +48,7 @@ class RoomsController extends BaseController
         $query->select('rooms.id');
     } else {
         // Select all columns when 'id' is not provided
-        $query->select('rooms.*', 'housekeeping.*');
+        $query->select( 'rooms.id as room_id' , 'rooms.*', 'housekeeping.*');
     }
 
     $rooms = $query->get();

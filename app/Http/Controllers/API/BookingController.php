@@ -7,11 +7,13 @@ use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Guest;
 use App\Models\Rooms;
+use App\Models\Housekeeping;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\FunctionValidatorAndInsert;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\API\HousekeepingController;
 class BookingController extends BaseController
 {
     /**
@@ -23,16 +25,36 @@ class BookingController extends BaseController
     // 
     public function insert(Request $request)
     {
-
         $input = new FunctionValidatorAndInsert();
         $validator = $input->bookingValidator($request);
+    
         if ($validator->fails()) {
-            return $this->sendError('bookingValidator.', ['error' => 'Unauthorised']);
+            return $this->sendError('bookingValidator.', ['error' => $validator->errors()]);
         }
+    
+        // Check for existing booking with the same room and overlapping dates
+        $checkinDate = $request->input('checkin_date');
+        $checkoutDate = $request->input('checkout_date');
+        $roomId = $request->input('room_id');
+        $bookingConflict = Booking::where('room_id', $roomId)
+        ->where('booking_status', '!=', 'Checked Out') // Add this condition
+        ->where(function ($query) use ($checkinDate, $checkoutDate) {
+            $query->whereBetween('checkin_date', [$checkinDate, $checkoutDate])
+                ->orWhereBetween('checkout_date', [$checkinDate, $checkoutDate]);
+        })
+        ->exists();
+    
+    
+        if ($bookingConflict) {
+            return $this->sendError('bookingConflict','Booking conflict: The selected dates or room are already booked.');
+        }
+    
         $operation = 'insert';
         $booking = $input->bookingInsert($request, $operation);
-        return $this->sendResponse($booking, 'Booking inserted successfully');
+    
+        return $this->sendResponse($booking, 'You has Booking successfully');
     }
+    
     // 
     public function selectAllBooking(Request $request)
     {
@@ -46,8 +68,8 @@ class BookingController extends BaseController
         $query = Rooms::leftJoin('bookings', function ($join) use ($dateToCompare) {
             $join->on('rooms.id', '=', 'bookings.room_id')
             ->whereNotIn('bookings.booking_status', ['Cancel', 'Void', 'Checked Out'])
-                ->whereDate('bookings.checkin_date', '<=', $dateToCompare)
-                ->whereDate('bookings.checkout_date', '>=', $dateToCompare);
+                ->whereDate('bookings.arrival_date', '<=', $dateToCompare)
+                ->whereDate('bookings.departure_date', '>=', $dateToCompare);
         })
             ->leftJoin('payments', 'bookings.payment_id', '=', 'payments.id')
             ->leftJoin('guests', 'bookings.guest_id', '=', 'guests.id')
@@ -55,7 +77,7 @@ class BookingController extends BaseController
                 $join->on('rooms.id', '=', 'housekeeping.room_id')
                     ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = rooms.id)');
             })
-            ->select('bookings.id as booking_id','bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*');
+            ->select('bookings.id as booking_id', 'bookings.room_rate as booking_room_rate' ,'bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*');
 
         // Check if room_status and booking_status parameters are provided
         if ($request->has('booking_status') && $request->input('booking_status') != 'All' && $request->input('booking_status') != ''  ) {
@@ -75,17 +97,23 @@ class BookingController extends BaseController
      
             
         }
-        if ($request->has('housekeeping_status') && $request->input('housekeeping_status') != 'All') {
-            $bookingStatus = $request->input('housekeeping_status');
+        if ($request->has('room_status') && $request->input('room_status') != 'All') {
+            $room_status = $request->input('room_status');
    
-            $query->where('housekeeping.housekeeping_status', $bookingStatus);
+            $query->where('rooms.room_status', $room_status);
      
             
         }
-        if ($request->has('guest_name') && $request->input('guest_name') != 'All') {
+        if ($request->has('guest_name') && $request->has('guest_name') !='' && $request->input('guest_name') != 'All') {
             $guestName = $request->input('guest_name');
             $query->where('guests.name', 'LIKE', '%' . $guestName . '%');
         }
+        if ($request->has('booking_id') && $request->input('booking_id') != 'All') {
+            $booking_id_i = $request->input('booking_id');
+            $query->where('bookings.id', $booking_id_i);
+        }
+
+
         if($request->has('page'))
         {
 
@@ -183,7 +211,7 @@ class BookingController extends BaseController
     {
         $booking = Booking::findOrFail($bookingId);
 
-        if ($booking->booking_status === 'Checked In') {
+        if ($booking->booking_status === 'In House') {
             return $this->sendError('Guest is already checked in.', '', 404);
         }
 
@@ -192,7 +220,7 @@ class BookingController extends BaseController
 
         // Compare the current date with the check-in date
         if ($booking->checkin_date <= $currentDate) {
-            $booking->booking_status = 'In house';
+            $booking->booking_status = 'In House';
             $booking->checkin_date = now();
             // Additional actions
             $booking->save();
@@ -212,6 +240,7 @@ class BookingController extends BaseController
             return $this->sendError('Guest is already checked out.', '', 404);
         }
         $booking->booking_status = 'checked out';
+        
         $booking->checkout_date = now();
         $currentDate = now()->toDateString();
         if ($booking->checkout_date == $currentDate) {
@@ -219,9 +248,15 @@ class BookingController extends BaseController
         }
         $room = Rooms::find($booking->room_id);
         $room->room_status = 'variable'; // Assuming you have a relationship set up between Booking and Room models
+       
         $room->save();
+        $roomOperation = 'update';
+        $HousekeepingController = new HousekeepingController();
+        $request->merge(['room_id' => $booking->room_id]);
+        $HousekeepingController = $HousekeepingController->insert('housekeeping_status=Dirty');
+        
         $booking->save();
-        return $this->sendResponse([$booking,], 'Guest checked out successfully.');
+        return $this->sendResponse($HousekeepingController, 'Guest checked out successfully.');
     }
     public function deleteGuest($id)
     {
@@ -287,10 +322,35 @@ class BookingController extends BaseController
                 $booking->booking_status = 'No Show';
                 break;  
                 case 'checkin':
-                    $booking->booking_status = 'In House';
+                    
+                    $lastHousekeeper = Housekeeping::where('room_id', $booking->room_id)
+                    ->latest('created_at')
+                    ->first();
+                    if ($lastHousekeeper->housekeeping_status == 'Dirty' ) {
+                       return $this->sendError('Please Clean This Room', 'The provided action is not valid.', 400);
+                    }else{
+                        $booking->booking_status = 'In House';
+                    }
+                   
                     break;  
                     case 'checkout':
+                        $payment = payment::where('id', $booking->payment_id)->first();
+ 
+                        $balanceAsString = (string) $payment->balance;
+                        if ($payment->balance == 0) {
+                           $HousekeepingController = new HousekeepingController();
+                        $lastHousekeeper = Housekeeping::where('room_id', $booking->room_id)
+    ->latest('created_at')
+    ->first();
+                        $request = new Request(['housekeeping_status' => 'Dirty', 'room_id' => $booking->room_id , 'housekeeper' =>  $lastHousekeeper->housekeeper ]);
+                        $HousekeepingController = $HousekeepingController->insert($request);
                         $booking->booking_status = 'Checked Out';
+                        }else{
+                      return $this->sendError('Your current balance on Zoro is $' . $balanceAsString . 'Please check', 'The provided action is not valid.', 400);         
+                        }
+                        
+ 
+
                         break;            
         // Add more cases for other actions if needed
         default:

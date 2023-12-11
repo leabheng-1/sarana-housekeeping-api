@@ -59,13 +59,8 @@ tr:nth-child(even) {
 
         </div>
         <?php
-    $totalGuests = 0; // Initialize the total guests variable
-    $totalBalance = 0; 
     $currentDate = date('Y-m-d');
-    foreach ($daily as $booking) {
-        $totalGuests += $booking->adults + $booking->child;
-        $totalBalance += $booking->payment;
-    }
+
 ?>    
 
         </div>
@@ -76,41 +71,29 @@ tr:nth-child(even) {
     <table border="1">
     <thead>
     <tr>
-        <th>ID</th>
-        <th>Guest ID</th>
-        <th>Name</th>
-        <th>Adults</th>
-        <th>Child</th>
-        <th>Check-In Date</th>
-        <th>Check-Out Date</th>
-        <th>Room Type</th>
-        
-        <th>Room Number</th>
-        
-        <th>Balance</th>
+        <th>Day</th>
+        <th>Check-In</th>
+        <th>Check-Out</th>
+        <th>Single Room</th>
+        <th>Twin Room</th>
+        <th>payment</th>
     </tr>
 </thead>
 
 <tbody>
-    @foreach ($daily as $booking)
-        <tr>
-            <td>{{ $booking->id }}</td>
-            <td>{{ $booking->guest_id }}</td>
-            <td>{{ $booking->name }}</td>
-            <td>{{ $booking->adults }}</td>
-            <td>{{ $booking->child }}</td>
-            <td>{{ $booking->checkin_date }}</td>
-            <td>{{ $booking->checkout_date }}</td>
-            <td>{{ $booking->room_type }}</td>
-            <td>{{ $booking->room_number }}</td>
-            <td>{{ $booking->payment }} $</td>
-        </tr>
-    @endforeach
-    <tr style="background-color:Gray;">
-<td colspan="8">Total</td>
-<td>  {{$totalGuests}} </td>
-<td>  {{$totalBalance}} $ </td>
-</tr>
+
+@foreach ($dataForView as $week)
+    <tr>
+        <td>{{ $week->week }}</td>
+        <td>{{ $week->check_in }}</td>
+        <td>{{ $week->check_out }}</td>
+        <td>{{ $week->summary_sum_payment }}</td>
+        <td>{{ $week->single_room }}</td>
+        <td>{{ $week->twin_room }}</td>
+    </tr>
+@endforeach
+
+   
 </tbody>
 
     </table>

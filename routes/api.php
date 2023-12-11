@@ -67,7 +67,10 @@ Route::put('/housekeeping/update/{id}', [HousekeepingController::class, 'update'
 Route::get('/housekeeping/find/{keyword}', [HousekeepingController::class, 'find']);
 // 
 Route::get('/report/monthly', [report::class, 'monthly']);
+Route::get('/report/monthlyReport', [report::class, 'monthlyReport']);
 Route::get('/report/weekly', [report::class, 'weekly']);
+Route::get('/report/yearly', [report::class, 'yearly']);
+
 Route::get('/report/daily', [report::class, 'daily']);
 Route::get('/report/monthlyCharge', [report::class, 'monthlyCharge']);
 Route::get('/report/monthlyGuestCount', [report::class, 'monthlyGuestCountByRoomType']);

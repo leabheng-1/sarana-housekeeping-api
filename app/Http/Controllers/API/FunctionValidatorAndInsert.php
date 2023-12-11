@@ -115,6 +115,7 @@ class FunctionValidatorAndInsert
         $payment->payment = $request->input('payment');
         $payment->charges = $request->input('charges');
         $payment->balance = $request->input('balance');
+        $payment->payment_type = $request->input('payment_type');
         $payment->payment_status = $request->input('payment_status');
         $payment->extra_charge = $request->input('extra_charge');
         $payment->item_extra_charge = $request->input('item_extra_charge');
@@ -147,6 +148,8 @@ class FunctionValidatorAndInsert
             $booking->room_id = $room_id_from_request;
         }
         $booking->room_type = $request->input('room_type');
+        $booking->room_rate = $request->input('room_rate');
+        $booking->booking_air_method = $request->input('booking_air_method');
         $booking->booking_status = $request->input('booking_status') ?? false;
         $booking->cancel_date = $request->input('cancel_date');
         $booking->arrival_date = $request->input('arrival_date');
@@ -156,7 +159,7 @@ class FunctionValidatorAndInsert
         $booking->adults = $request->input('adults') ?? 1;
         $booking->child = $request->input('child') ?? 0;
         $booking->created_by = $request->input('created_by') ?? 'null';
-        $booking->note = $request->input('note') ?? 'null';
+        $booking->booking_note = $request->input('booking_note') ?? 'null';
 
         // Assign payment and guest IDs
         $booking->payment_id = $payment->id;
