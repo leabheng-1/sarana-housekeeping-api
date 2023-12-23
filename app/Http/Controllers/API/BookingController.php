@@ -106,7 +106,9 @@ class BookingController extends BaseController
         }
         if ($request->has('guest_name') && $request->has('guest_name') !='' && $request->input('guest_name') != 'All') {
             $guestName = $request->input('guest_name');
-            $query->where('guests.name', 'LIKE', '%' . $guestName . '%');
+            $query->where('guests.name', 'LIKE', '%' . $guestName . '%')
+            ->orWhere('rooms.room_number', 'LIKE', '%' . $guestName . '%');
+
         }
         if ($request->has('booking_id') && $request->input('booking_id') != 'All') {
             $booking_id_i = $request->input('booking_id');

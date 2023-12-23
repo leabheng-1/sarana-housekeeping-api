@@ -113,7 +113,7 @@ $inHouse = Booking::where('booking_status', '=', 'In House')
     ->count();
         $cleaning = $this->getRoomData('cleaning');
         $dirty = $this->getRoomData('dirty');
-        $occupied = Rooms::where('room_status', '=','Occupied')->count();
+        $occupied = $bookingRooms;
         $block = Rooms::where('room_status', '=','Block')->count();
         $checkInBookings = Booking::whereDate('checkin_date', $today)
         ->join('rooms', 'rooms.id', '=', 'bookings.room_id')
