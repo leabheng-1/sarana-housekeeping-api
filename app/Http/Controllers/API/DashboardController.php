@@ -41,7 +41,7 @@ class DashboardController extends BaseController
             $join->on('bookings.room_id', '=', 'housekeeping.room_id')
                  ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = bookings.room_id)');
         })->select('bookings.id as booking_id','bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*')
-        ->where('bookings.booking_status', '!=', 'Check Out') // Add this line to filter by booking status
+        ->where('bookings.booking_status', '!=', 'Checked Out') // Add this line to filter by booking status
         ->get();
         $arrival_date = Booking::whereDate('arrival_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
         $departure_date = Booking::whereDate('departure_date', $today)->join('guests', 'bookings.guest_id', '=', 'guests.id')->get();
@@ -96,6 +96,7 @@ class DashboardController extends BaseController
     $availableRoomBooking = Rooms::leftJoin('bookings', 'rooms.id', '=', 'bookings.room_id') 
         ->leftJoin('payments', 'bookings.payment_id', '=', 'payments.id')
         ->leftJoin('guests', 'bookings.guest_id', '=', 'guests.id')
+        
         ->leftJoin('housekeeping', function ($join) {
             $join->on('rooms.id', '=', 'housekeeping.room_id')
                 ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = rooms.id)');
@@ -104,7 +105,11 @@ class DashboardController extends BaseController
         ->select('bookings.id as booking_id','bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*')
         ->get()
         ;
-    $availableRooms = $totalRoom - $bookingRooms;
+        $room_block = Rooms::where('rooms.room_status', 'Block')
+        ->select('rooms.*')
+        ->count()
+        ;
+    $availableRooms = $totalRoom - ( $bookingRooms + $room_block ) ;
         $clean = $this->getRoomData('clean');
 
 $inHouse = Booking::where('booking_status', '=', 'In House')

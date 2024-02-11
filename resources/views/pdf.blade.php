@@ -52,7 +52,7 @@ tr:nth-child(even) {
 </head>
 <body>
     <div class="container">
-        <img class="logo" src="https://lh3.googleusercontent.com/pw/ADCreHdTq9J3yXVSXAZn51lCYe7ZWjIct7qpQFRfxrHnAnSmh8DVdY-wKumdRHRkr_ZwOfkIkKba07qN6INRWz1EPJFnD5HLqt8TSsaveAoHLu03Jfi2eOY3fEXEhWK8uy6yU6IXWQzPQlSBukftt6eoJP51DVhhO5GCmp9LsiYwqbKeUynQHThdkfcbO-e9s_KBc4dT1dOHU6_mapTDcfxdZW7Hdj8-nDt7tx43BS3YAhg5z231wxZymrYPq0BFqNnhcfucR9Bgyaxh3FzZ_7Iy_Cy94qh9zjB3jdDq5kXlNKGLSn-jcORNpnaGKKhFjgIsZGXQ7m8nfJuBrg021C0JQl1_cVwPgh-BMotos0AwOdF1_3v1Gj0PYvjqW1bstBiHb84X6I-aW6gmYMYkZOX1X2DezGUl-3G3Ec2BjwCNLMu3MkZUdGIislPwy2QD-zthKCNGKVtrGGeojP4oMOYRuC-8OHfqfRmcwi3vZewfIRrVFz5Cs4SwitcLlIIO-qXZEOCylSE9bEVVikZoSrMESb6Gv4R-41usJU2bPrNRQ3G5Z_FDqTu_vEzMV8m96Opu7j5G2DLhor0q25gE83pUcfYCToC6EJDZfaFUcbfYwP6IeyVr4QZipwKTK_E1NurTGdVSt_b8y11C4uPd953yfH7VWp-9jBAbF1_MmUQ-zBDv5I9PbPXs2cIL-BmUllqd8q-aN46fueJ3kqHBjrv83NZK1p7Sn7txC5d30kGxYpIV5v5doXzduNKLXSIE2FumLkKp0B9O3ZwjRX_WtSy35WCgM0MmTiOA8AJPGdTo4zXXM7h8aWn6DvFKcWqryg2-JitFzrgGp-4KmD7gYJUlf6-lEWB-dndtb5eDifvxXk7y_ATsqWxJ2UakViEIQVGQXec_S0-B9gHOQB7vOTv4CLQeev24IarwdgOEpXQ=w903-h923-s-no-gm?authuser=0" alt="Hotel Logo">
+        <img class="logo" src="https://i.postimg.cc/yYHG4rxG/logo.jpg" alt="Hotel Logo">
         <h1 class="hotel-name">Unique Palm AngKor Villa</h1>
         <h1>Report</h1>
         <div>
@@ -64,7 +64,7 @@ tr:nth-child(even) {
     $currentDate = date('Y-m-d');
     foreach ($daily as $booking) {
         $totalGuests += $booking->adults + $booking->child;
-        $totalBalance += $booking->payment;
+        $totalBalance += $booking->charges;
     }
 ?>    
 
@@ -103,7 +103,7 @@ tr:nth-child(even) {
             <td>{{ $booking->checkout_date }}</td>
             <td>{{ $booking->room_type }}</td>
             <td>{{ $booking->room_number }}</td>
-            <td>{{ $booking->payment }} $</td>
+            <td>{{ $booking->charges }} $</td>
         </tr>
     @endforeach
     <tr style="background-color:Gray;">

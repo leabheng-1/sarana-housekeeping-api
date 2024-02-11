@@ -10,7 +10,7 @@ use App\Models\Guest;
 use App\Models\Housekeeping;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Str;
 class FunctionValidatorAndInsert
 {
     // Insert Guest
@@ -122,7 +122,7 @@ class FunctionValidatorAndInsert
         $payment->save();
         return $payment;
     }
-    public function bookingInsert(Request $request, $operation)
+    public function bookingInsert1(Request $request, $operation)
     {
 
 
@@ -137,7 +137,14 @@ class FunctionValidatorAndInsert
             $request->merge(['id' => $booking->payment_id]);
             $paymentInsert = $this->paymentInsert($request, $operation);
         } else {
-            $booking = new Booking();
+            $roomValues = ['60', '61', '62'];
+
+            // Create and save multiple bookings with different room values
+            foreach ($roomValues as $room) {
+             
+                $booking = new Booking();
+                $booking->save();
+            }
             $guestInsert = $this->guestInsert($request, $operation);
             $paymentInsert = $this->paymentInsert($request, $operation);
         }
@@ -160,6 +167,85 @@ class FunctionValidatorAndInsert
         $booking->child = $request->input('child') ?? 0;
         $booking->created_by = $request->input('created_by') ?? 'null';
         $booking->booking_note = $request->input('booking_note') ?? 'null';
+        $booking->group_id = Str::uuid();
+        // Assign payment and guest IDs
+        $booking->payment_id = $payment->id;
+        $booking->guest_id = $guest->id;
+
+        $booking->save(); // Save the booking
+
+        return $booking;
+    }
+  public function bookingInsert(Request $request, $operation)
+    {
+        // Initialize variables for guest and payment
+        $guest = null;
+        $payment = null;
+
+        // Check if it's an update operation and if an ID is provided
+        if ($operation === 'update' && $request->has('id')) {
+            // Find the booking by ID
+            $booking = Booking::findOrFail($request->input('id'));
+            
+            // Update guest and payment records
+            $request->merge(['id' => $booking->guest_id]);
+            $guestInsert = $this->guestInsert($request, $operation);
+
+            $request->merge(['id' => $booking->payment_id]);
+            $paymentInsert = $this->paymentInsert($request, $operation);
+
+            // Assign the updated guest and payment records
+            $guest = $guestInsert;
+            $payment = $paymentInsert;
+
+       
+
+        } else {
+        
+            // If it's not an update operation, create new guest and payment records
+            $guest = $this->guestInsert($request, $operation);
+            $payment = $this->paymentInsert($request, $operation);
+
+            // Create and save multiple bookings with different room values
+            $roomValuesString = $request->input('room_id');
+            $room_typeValuesString = $request->input('room_type');
+            $booking_air_method = $request->input('booking_air_method');
+            if ($room_typeValuesString) {
+                
+                // Split the string into an array using the comma as a delimiter
+                $roomValuesArray = explode(', ', $roomValuesString);
+                $roomValuesArray = array_map('intval', $roomValuesArray);
+                 // Split the string into an array using the comma as a delimiter
+                $room_typeArray = explode(',', $room_typeValuesString);
+                $booking_air_methodArray = explode(',', $booking_air_method);
+                
+                $group_id = Str::random(5);
+                // Continue with creating bookings...
+                foreach ($room_typeArray as $index => $value) {
+                   
+                    $booking = new Booking();
+                    $booking->room_id = $roomValuesArray[$index]; 
+                    $booking->room_type = $value; 
+                    $booking->booking_air_method = $booking_air_methodArray[$index];
+                    // Use the room ID from the array
+                    $this->populateBookingAttributes($booking, $request);
+                    $booking->payment_id = $payment->id;
+                    $booking->guest_id = $guest->id;
+                    $room = Rooms::where('id', $roomValuesArray[$index]);
+                    $room->update(['room_status' => 'Occupied']);
+                    if (count($room_typeArray) > 1) {
+                        $booking->group_id = $group_id ;
+                    }
+                   
+                    $booking->save();
+                }
+            } else {
+                return 'No room_id parameter in the request.';
+            }
+            
+        }
+
+        $this->populateBookingAttributes($booking, $request);
 
         // Assign payment and guest IDs
         $booking->payment_id = $payment->id;
@@ -170,6 +256,23 @@ class FunctionValidatorAndInsert
         return $booking;
     }
 
+    // A separate function to set common booking attributes
+    private function populateBookingAttributes($booking, $request)
+    {
+       
+        $booking->room_rate = $request->input('room_rate');
+        $booking->booking_status = $request->input('booking_status') ?? false;
+        $booking->cancel_date = $request->input('cancel_date');
+        $booking->arrival_date = $request->input('arrival_date');
+        $booking->departure_date = $request->input('departure_date');
+        $booking->checkin_date = $request->input('checkin_date');
+        $booking->checkout_date = $request->input('checkout_date');
+        $booking->adults = $request->input('adults') ?? 1;
+        $booking->child = $request->input('child') ?? 0;
+        $booking->created_by = $request->input('created_by') ?? 'null';
+        $booking->booking_note = $request->input('booking_note') ?? 'null';
+        
+    }
     // bookingValidator
     public function bookingValidator(Request $request)
     {

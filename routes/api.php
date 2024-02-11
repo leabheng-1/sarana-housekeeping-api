@@ -39,6 +39,7 @@ Route::put('booking/void/{id}', [BookingController::class, 'void']);
 Route::put('booking/move/{id}', [BookingController::class, 'moveStay']);
 Route::post('booking/insert', [BookingController::class, 'insert']);
 Route::get('booking/all', [BookingController::class, 'selectAllBooking']);
+Route::get('booking/BookingDailog', [BookingController::class, 'BookingDailog']);
 Route::get('booking/roomVariable', [BookingController::class, 'roomVariable']);
 Route::get('booking/allTime', [BookingController::class, 'selectBooking']);
 Route::put('booking/checkin/{bookingId}', [BookingController::class, 'checkIn']);
@@ -51,7 +52,8 @@ Route::post('room/insert', [RoomsController::class, 'insert']);
 Route::put('room/update/{id}', [RoomsController::class, 'update']);
 Route::delete('room/delete/{id}', [RoomsController::class, 'delete']);
 // 
-Route::get('payment/all', [PaymentController::class, 'selectAllPayment']);
+Route::get('payment/all/{id}', [PaymentController::class, 'selectPaymentById']);
+Route::put('booking/cancel/{id}', [BookingController::class, 'cancel']);
 Route::post('payment/insert', [PaymentController::class, 'insert']);
 Route::put('payment/update/{id}', [PaymentController::class, 'update']);
 Route::delete('payment/delete/{id}', [PaymentController::class, 'delete']);

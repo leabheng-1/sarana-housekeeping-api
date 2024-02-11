@@ -113,7 +113,7 @@ class report extends BaseController
                 return $query->join('rooms', 'bookings.room_id', '=', 'rooms.id')
                              ->where('rooms.room_status', $roomStatus);
             })
-            ->sum('payments.payment');
+            ->sum('payments.charges');
 
         $weeklyReport[date('l', strtotime($currentDate))] = [
             'date' => $currentDate->format('Y-m-d'),
@@ -307,7 +307,7 @@ public function monthly(Request $request) {
         ->selectRaw('WEEK(bookings.checkin_date, 1) as week, 
                      count(*) as check_in, 
                      SUM(CASE WHEN bookings.checkout_date BETWEEN ? AND ? THEN 1 ELSE 0 END) as check_out,
-                     SUM(payments.payment) as summary_sum_payment,
+                     SUM(payments.charges) as summary_sum_payment,
                      SUM(CASE WHEN rooms.roomType = "Single Room" THEN 1 ELSE 0 END) as single_room,
                      SUM(CASE WHEN rooms.roomType = "Twin Room" THEN 1 ELSE 0 END) as twin_room', 
                      [$startOfMonth, Carbon::now()])
@@ -337,7 +337,7 @@ public function monthly(Request $request) {
     // Sort the results by week
     ksort($allWeeks);
 
-    // Reset keys to start from 0
+    // Reset keys to start from 
     $allWeeks = array_values($allWeeks);
     if ($request->has('format')) {
         if ($request->input('format') == 'PDF') {
@@ -401,7 +401,7 @@ public function yearly(Request $request) {
         ->selectRaw('MONTH(bookings.checkin_date) as month_number,
                      COUNT(*) as check_in,
                      SUM(CASE WHEN bookings.checkout_date BETWEEN ? AND ? THEN 1 ELSE 0 END) as check_out,
-                     SUM(payments.payment) as summary_sum_payment,
+                     SUM(payments.charges) as summary_sum_payment,
                      SUM(CASE WHEN rooms.roomType = "Single Room" THEN 1 ELSE 0 END) as single_room,
                      SUM(CASE WHEN rooms.roomType = "Twin Room" THEN 1 ELSE 0 END) as twin_room',
                      [$startOfYear, Carbon::now()])
@@ -488,15 +488,23 @@ public function yearly(Request $request) {
         $bookingId = $request->input('booking_id');
         $query->where('bookings.id', $bookingId);
     }
-    if (($request->has('start_date') && $request->has('end_date'))&&($request->input('start_date') != '' && $request->input('end_date') != '')) {
+    if ($request->filled('start_date') && $request->filled('end_date')) {
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
-        $query->whereBetween('bookings.checkin_date', [$startDate, $endDate]);
+        $query->whereBetween('bookings.checkin_date', [$startDate, $endDate])
+        ->orWhereDate('bookings.checkout_date', '=', [$startDate, $endDate]);
+    } else {
+        // If start_date or end_date is not provided or is empty, default to today
+        $today = now()->toDateString();
+        $query->whereDate('bookings.checkin_date', '=', $today)
+        ->orWhereDate('bookings.checkout_date', '=', $today);
+        ;
     }
+    
 
     if ($request->has('room_type') && $request->input('room_type') != 'All' ) {
         $roomType = $request->input('room_type');
-        $query->where('bookings.room_type', $roomType);
+        $query->where('rooms.roomtype', $roomType);
     }
 
     if ($request->has('room_number') && $request->input('room_number') != 'All' ) {
@@ -514,7 +522,7 @@ if ($request->has('format')) {
         $filename = $currentDate . '_report.pdf';
         $pdf = PDF::loadView('pdf', compact('daily'));
    
-    return $pdf->download($filename);
+        return $pdf->stream('sample.pdf');
     }elseif ($request->input('format') == 'excel'){
         $daily = $query->select('bookings.*', 'rooms.*', 'guests.*', 'payments.*')->get();
         return Excel::download(new BookingsExport($daily), 'bookings.xlsx');

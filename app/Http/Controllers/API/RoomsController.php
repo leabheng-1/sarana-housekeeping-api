@@ -16,12 +16,15 @@ class RoomsController extends BaseController
      public function insert(Request $request)
      {
          $room_input = new FunctionValidatorAndInsert(); 
+         $HousekeepingController = new HousekeepingController();
          $validator = $room_input->roomValidator($request);
          if ($validator->fails()) {
              return $this->sendError('Validation Error', $validator->errors(), 400);
          }
          $operation = 'insert';
          $room = $room_input->roomInsert($request, $operation);
+         $request->merge(['room_id' => $room->id]);
+         $HousekeepingController = $HousekeepingController->insert($request);
          return $this->sendResponse($room, 'room inserted successfully');
      }
      public function selectAllRooms(Request $request)

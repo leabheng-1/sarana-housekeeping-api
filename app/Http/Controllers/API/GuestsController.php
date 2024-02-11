@@ -37,15 +37,34 @@ class GuestsController extends BaseController
     {
         $guests = Guest::rightJoin('bookings', 'guests.id', '=', 'bookings.guest_id')
         ->leftJoin('payments', 'bookings.payment_id', '=', 'payments.id')
-        ->leftJoin('rooms', 'bookings.guest_id', '=', 'rooms.id')
+        ->leftJoin('rooms', 'bookings.room_id', '=', 'rooms.id')
         ->leftJoin('housekeeping', function ($join) {
             $join->on('bookings.room_id', '=', 'housekeeping.room_id')
                 ->whereRaw('housekeeping.id = (select max(id) from housekeeping where room_id = bookings.room_id)');
         })
-        ->select('bookings.id as booking_id', 'bookings.room_rate as booking_room_rate' ,'bookings.*','rooms.id as roomId', 'rooms.*', 'payments.*', 'guests.*', 'housekeeping.*');
+        ->select('bookings.id as booking_id', 'bookings.room_rate as booking_room_rate' ,'bookings.*','rooms.id as roomId', 'rooms.*','rooms.room_number as roomnumber', 'payments.*', 'guests.*', 'housekeeping.*');
+        if ($request->has('Search') && $request->has('Search') !='' && $request->input('Search') != 'All') {
+            $guestName = $request->input('Search');
+            $guests->where('guests.name', 'LIKE', '%' . $guestName . '%')
+            ->orWhere('rooms.room_number', 'LIKE', '%' . $guestName . '%')
+            ->orWhere('rooms.id', 'LIKE', '%' . $guestName . '%');
+            ;
 
+        }
         // $guests = Guest::rightJoin('bookings', 'guests.id', '=', 'bookings.guest_id') ;
-        
+        if ($request->has('housekeeping_status') && $request->input('housekeeping_status') != 'All') {
+            $bookingStatus = $request->input('housekeeping_status');
+            $guests->where('housekeeping.housekeeping_status', $bookingStatus);
+     
+            
+        }
+        if ($request->has('room_status') && $request->input('room_status') != 'All') {
+            
+            $room_status = $request->input('room_status');
+            $guests-->where('rooms.room_status', $room_status);
+
+            
+        }
         if($request->has('page'))
         {
 

@@ -27,11 +27,12 @@ class PaymentController extends BaseController
          $payment = $payment_input->paymentInsert($request, $operation);
          return $this->sendResponse($payment, 'payment inserted successfully');
      }
-    public function selectAllPayment()
-    {
-        $payments = payment::all();
-        return $this->sendResponse($payments, 'payments retrieved successfully');
-    }
+     public function selectPaymentById($id)
+     {
+         $payment = Payment::findOrFail($id); // Assuming your model is named Payment (singular) and follows the naming conventions
+         return $this->sendResponse($payment, 'Payment retrieved successfully');
+     }
+     
     public function delete($id)
     {
         $payment = payments::findOrFail($id);
