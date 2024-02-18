@@ -136,10 +136,10 @@ if ($request->has('format')) {
         $pdf = PDF::loadView('weekly', compact('dataForView'));
     
         // Download the PDF
-        return $pdf->download('weekly_report.pdf');
+        return $pdf->stream('sample.pdf');
     }elseif ($request->input('format') == 'excel'){
         $daily = $weeklyReport;
-        return Excel::download(new BookingsExport($daily), 'bookings.xlsx');
+        return Excel::download(new BookingsExportweekly($daily), 'weekbookings.xlsx');
     }elseif ($request->input('format') == 'sql'){
         $daily = $weeklyReport->toSql();
         
@@ -514,18 +514,18 @@ public function yearly(Request $request) {
     
     
 
-
+    $currentDate = date('Y-m-d'); 
 if ($request->has('format')) {
     if ($request->input('format') == 'PDF') {
         $daily = $query->select('bookings.*', 'rooms.*', 'guests.*', 'payments.*')->get();
-        $currentDate = date('Y-m-d'); // Format the current date as needed
+       // Format the current date as needed
         $filename = $currentDate . '_report.pdf';
         $pdf = PDF::loadView('pdf', compact('daily'));
    
         return $pdf->stream('sample.pdf');
     }elseif ($request->input('format') == 'excel'){
         $daily = $query->select('bookings.*', 'rooms.*', 'guests.*', 'payments.*')->get();
-        return Excel::download(new BookingsExport($daily), 'bookings.xlsx');
+        return Excel::download(new BookingsExport($daily), $currentDate . 'daily.xlsx');
     }elseif ($request->input('format') == 'sql'){
         $daily = $query->select('bookings.*', 'rooms.*', 'guests.*', 'payments.*')->get();
         
